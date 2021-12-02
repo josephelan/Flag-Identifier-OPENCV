@@ -143,7 +143,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="ColorBucket.cpp" />
     <ClCompile Include="driver.cpp" />
+    <ClCompile Include="CommonColorFinder.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="ColorBucket.h" />
+    <ClInclude Include="CommonColorFinder.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
