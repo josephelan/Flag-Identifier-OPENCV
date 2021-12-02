@@ -15,14 +15,29 @@ CommonColorFinder::CommonColorFinder() {
  * @return ColorBucket representing red,blue,green bucket with most counts
  */
 ColorBucket CommonColorFinder::getCommonColorBucket(const Mat& img) {
-  return findMostCommonColor(populateHistogram(img));
+  return findMostCommonBucket(populateHistogram(img));
+}
+
+/**
+ * @brief Finds most common color given a Colorbucket
+ * 
+ * @param Colorbucket to get rgb values for
+ * @return RGBHolder of most common RGB
+ */
+RGBHolder CommonColorFinder::getCommonColor(const ColorBucket cb) {
+  int bucketSize = 64;
+  int common_red = cb.getRedBucket() * bucketSize + (bucketSize / 2);
+  int common_green = cb.getGreenBucket() * bucketSize + (bucketSize / 2);
+  int common_blue = cb.getBlueBucket() * bucketSize + (bucketSize / 2);
+  RGBHolder result(common_red, common_blue, common_green);
+  return result;
 }
 
 /**
  * @brief Creates a histogram for a given image with 4x4x4 dimensions
- * 
+ *
  * @param img Input image to test
- * @return 
+ * @return
  */
 Mat CommonColorFinder::populateHistogram(const Mat& img){
   // Create histogram picture
@@ -66,7 +81,7 @@ Mat CommonColorFinder::populateHistogram(const Mat& img){
  * @param img Histogram to test on
  * @return Most common color bucket object
  */
-ColorBucket CommonColorFinder::findMostCommonColor(const Mat& img) {
+ColorBucket CommonColorFinder::findMostCommonBucket(const Mat& img) {
   
   // Store max bucket information
   ColorBucket max;
