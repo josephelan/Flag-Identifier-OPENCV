@@ -18,6 +18,7 @@
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
 #include <iostream>
+#include <list>
 #include <unordered_map>
 #include <string>
 
@@ -65,7 +66,7 @@ int main(int argc, char* argv[]) {
   // Store histogram in histogram "vector
 
   // 3 Layered Map
-  std::unordered_map<int, std::unordered_map<int, std::unordered_map<int, std::string>>> flag_map;
+  std::unordered_map<int, std::unordered_map<int, std::unordered_map<int, std::list<std::string>>>> flag_map;
 
   // flag_map maps red bucket in ints to a corresponding map of blue bucket
   // next layer maps blue bucket int to a corresponding map of green bucket
@@ -74,8 +75,57 @@ int main(int argc, char* argv[]) {
 
 
 
-  for (int i = 0; i < 50; ++i) {
+  for (int i = 0; i < images.size(); ++i) {
+    
+    // Get ColorBucket object, which holds the bucket for the most common color
+    // For image at position (i)
+    ColorBucket current_image = CommonColorFinder::getCommonColorBucket(images.at(i));
+    
+    // If hashmap doesn't have an image with this red bucket, add it
+    if (flag_map.find(current_image.getRedBucket()) == flag_map.end()) {
+      
+      // Add the colorbucket and its name
 
+      // Create final map with string of flag names
+      std::unordered_map<int, std::list<std::string>> final_map;
+      std::list<std::string> flag_names; // Create flag name list
+      flag_names.push_back(index_files[i]); // Push this state name onto flag_name list
+      final_map.emplace(current_image.getGreenBucket(), flag_names); // Push flag_name list and list of names onto final_map
+
+      // Create mid map with blue bucket and final_map
+      std::unordered_map<int, std::unordered_map<int, std::list<std::string>>> mid_map;
+      mid_map.emplace(current_image.getBlueBucket(), final_map); // Put in blue bucket and final map
+      flag_map.emplace(current_image.getRedBucket(), mid_map); // Put in red bucket with blue bucket map
+
+    // Red bucket exists, check blue
+    } else if (flag_map.at(current_image.getRedBucket()).find(current_image.getBlueBucket()) ==
+               flag_map.at(current_image.getRedBucket()).end()) {
+
+      // Add the colorbucket and its name
+
+      // Create final map with string of flag names
+      std::unordered_map<int, std::list<std::string>> final_map;
+      std::list<std::string> flag_names; // Create flag name list
+      flag_names.push_back(index_files[i]); // Push this state name onto flag_name list
+      final_map.emplace(flag_names, flag_names); // Push flag_name list and list of names onto final_map
+
+      flag_map.at(current_image.getRedBucket()).emplace(current_image.getBlueBucket(), final_map);
+
+    // Red and blue bucket exist, check green
+    } else if (flag_map.at(current_image.getRedBucket()).at(current_image.getBlueBucket()).find(current_image.getGreenBucket()) ==
+               flag_map.at(current_image.getRedBucket()).at(current_image.getBlueBucket()).end()) {
+
+      // Add the colorbucket and its name
+      std::unordered_map<int, std::list<std::string>> final_map;
+      std::list<std::string> flag_names; // Create flag name list
+      flag_names.push_back(index_files[i]); // Push this state name onto flag_name list
+      flag_map.at(current_image.getRedBucket()).at(current_image.getBlueBucket()).emplace(current_image.getGreenBucket(), final_map);
+    
+
+    // The RBG bucket combination exists for a flag
+    } else {
+      flag_map.at(current_image.getRedBucket()).at(current_image.getBlueBucket()).at(current_image.getGreenBucket()).push_back(index_files[i]);
+    }
   }
 
 

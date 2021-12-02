@@ -43,26 +43,31 @@ Mat CommonColorFinder::populateHistogram(const Mat& img){
   // Create histogram picture
   // Create an array of the histogram dimensions
   // Size is a constant - the # of buckets in each dimension
-  int dims[] = { 4, 4, 4 };
+  int dims[] = { 8, 8, 8 };
 
   // Create 3D histogram of integers initialized to 0
   Mat histogram(3, dims, CV_32S, Scalar::all(0));
 
-  // Histogram with 4 buckets
-  // Each bucket has size 64
-  // 0 - 63
-  // 64 - 127
-  // 128 - 191
-  // 192 - 255
-  int bucket_size = 256 / 4;
+  // Histogram with 8 buckets
+  // Each bucket with size 32
+  int bucket_size = 256 / 8;
 
   // Access each pixel and assign them to the histogram
   for (int row = 0; row < img.rows; ++row) {
     for (int col = 0; col < img.cols; ++col) {
 
       // Decides which bucket to increment in histogram
-      // Will result in 0, 1, 2, or 3 respectively for buckets:
-      // 0 - 63, 54 - 127, 128 - 191, 192 - 255
+      // Will result in 8 buckets of size 32
+      /*
+       * 0 - 31
+       * 32 - 63
+       * 64 - 95
+       * 96 - 127
+       * 128 - 159
+       * 160 - 191
+       * 192 - 223
+       * 224 - 255
+       */
       int blue_bucket = img.at<Vec3b>(row, col)[0] / bucket_size;
       int green_bucket = img.at<Vec3b>(row, col)[1] / bucket_size;
       int red_bucket = img.at<Vec3b>(row, col)[2] / bucket_size;
