@@ -109,5 +109,6 @@ ColorBucket CommonColorFinder::findMostCommonBucket(const Mat& img) {
       }
     }
   }
+  
   return max;
 }

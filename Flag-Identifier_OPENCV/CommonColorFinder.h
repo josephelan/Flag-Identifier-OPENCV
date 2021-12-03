@@ -37,8 +37,6 @@ class CommonColorFinder {
    */
   static ColorBucket getCommonColorBucket(const Mat& img);
 
-  private:
-
   /**
    * @brief Creates a histogram for a given image with 4x4x4 dimensions
    *
@@ -46,6 +44,8 @@ class CommonColorFinder {
    * @return
    */
   static Mat populateHistogram(const Mat& img);
+
+  private:
 
   /**
    * @brief Returns a ColorBucket of RBG space with 4 dimensions from a histrogram

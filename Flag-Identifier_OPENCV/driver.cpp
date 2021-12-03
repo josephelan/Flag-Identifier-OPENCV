@@ -77,12 +77,18 @@ int main(int argc, char* argv[]) {
   }
 
   // Status
+  std::cout << "-------------------------------------------------" << std::endl;
   std::cout << "Creating map" << std::endl;
 
   // 3 Layered Map structure Stores flag names
   std::unordered_map<int, std::unordered_map<int, std::unordered_map<int, std::list<std::string>>>> flag_map;
 
   std::vector<std::string> flag_debug;
+
+  std::vector<Mat> histograms;
+  for (int i = 0; i < 50; ++i) {
+    histograms.push_back(CommonColorFinder::populateHistogram(images.at(i)));
+  }
 
   // flag_map maps red bucket in ints to a corresponding map of blue bucket
   // next layer maps blue bucket int to a corresponding map of green bucket
@@ -205,11 +211,11 @@ int main(int argc, char* argv[]) {
 
   std::cout << "----------------------------------------------------------------" << std::endl;
   std::cout << "Flag positions: " << std::endl;
+
   for (int i = 0; i < 50; ++i) {
     std::cout << flag_debug.at(i) << std::endl;
   }
 
-  std::cout << "Flags at list 7,7,7" << std::endl;
   std::list<std::string>::iterator it = flag_map.at(7).at(7).at(7).begin();
   while (it != flag_map.at(7).at(7).at(7).end()) {
     std::cout << *(it) << std::endl;
