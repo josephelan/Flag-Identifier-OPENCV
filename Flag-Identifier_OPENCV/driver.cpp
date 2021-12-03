@@ -6,7 +6,7 @@
  * @author Joseph Lan
  * @author Andy Tran
  * @author Kevin Xu
- *             
+ *
  * @date 2021 December 1
  *
  * FLAG IDENTIIFIER
@@ -27,13 +27,17 @@
 
 using namespace cv;
 
+void getFlags(std::vector<Mat>& images) {
+
+}
+
 /**
  * @brief main method drives the program through a series of steps in order
  *        to determine what flag is being input into the picture.
- * 
+ *
  * @param argc
  * @param argv
- * @return 
+ * @return
  */
 int main(int argc, char* argv[]) {
 
@@ -51,15 +55,34 @@ int main(int argc, char* argv[]) {
     "vt", "wa", "wi", "wv", "wy"
   };
 
+  std::string index_files2[] = {
+    "alaska", "alabama", "arkansas", "arizona", "california",
+    "colorado", "connecticut", "delaware", "florida", "georgia",
+    "hawaii", "iowa", "idaho", "illinois", "indiana",
+    "kansas", "kentucky", "louisiana", "massachusetts", "maryland",
+    "maine", "michigan", "minnesota", "missouri", "mississippi",
+    "montana", "north_carolina", "north_dakota", "nebraska", "new_hampshire",
+    "new_jersey", "new_mexico", "nevada", "new_york", "ohio",
+    "oklahoma", "oregon", "pennsylvania", "rhode_island", "south_carolina",
+    "south_dakota", "tennessee", "texas", "utah", "virginia",
+    "vermont", "washington", "wisconsin", "west_virginia", "wyoming"
+  };
+
   // Create vector of 50 state flag images to store files in
   std::vector<Mat> images;
-
   // Read 50 flag images and store in "vector"
   for (int i = 0; i < 50; ++i) {
     std::string file_name = index_files[i] + ".jpg";
-    Mat index_file = imread(file_name);
+    Mat index_file = imread("flags/" + file_name);
     images.push_back(index_file);
   }
+
+  //TEST OUTPUT//TEST OUTPUT//TEST OUTPUT//TEST OUTPUT//TEST OUTPUT//TEST OUTPUT
+  namedWindow("my-output", WINDOW_NORMAL);
+  resizeWindow("my-output", images.at(46).cols, images.at(46).rows);
+  imshow("my-output", images.at(46));
+  waitKey(0);
+  //TEST OUTPUT//TEST OUTPUT//TEST OUTPUT//TEST OUTPUT//TEST OUTPUT//TEST OUTPUT
 
   // Create "vector" to store final histogram values for each index image
   // Pull images from images[] and calculate most common color histogram for each
@@ -71,19 +94,19 @@ int main(int argc, char* argv[]) {
   // flag_map maps red bucket in ints to a corresponding map of blue bucket
   // next layer maps blue bucket int to a corresponding map of green bucket
   // green bucket maps int bucket to a string
-  
+
 
 
 
   for (int i = 0; i < images.size(); ++i) {
-    
+
     // Get ColorBucket object, which holds the bucket for the most common color
     // For image at position (i)
     ColorBucket current_image = CommonColorFinder::getCommonColorBucket(images.at(i));
-    
+
     // If hashmap doesn't have an image with this red bucket, add it
     if (flag_map.find(current_image.getRedBucket()) == flag_map.end()) {
-      
+
       // Add the colorbucket and its name
 
       // Create final map with string of flag names
@@ -111,7 +134,7 @@ int main(int argc, char* argv[]) {
 
       flag_map.at(current_image.getRedBucket()).emplace(current_image.getBlueBucket(), final_map);
 
-    // Red and blue bucket exist, check green
+      // Red and blue bucket exist, check green
     } else if (flag_map.at(current_image.getRedBucket()).at(current_image.getBlueBucket()).find(current_image.getGreenBucket()) ==
                flag_map.at(current_image.getRedBucket()).at(current_image.getBlueBucket()).end()) {
 
@@ -120,9 +143,9 @@ int main(int argc, char* argv[]) {
       std::list<std::string> flag_names; // Create flag name list
       flag_names.push_back(index_files[i]); // Push this state name onto flag_name list
       flag_map.at(current_image.getRedBucket()).at(current_image.getBlueBucket()).emplace(current_image.getGreenBucket(), final_map);
-    
 
-    // The RBG bucket combination exists for a flag
+
+      // The RBG bucket combination exists for a flag
     } else {
       flag_map.at(current_image.getRedBucket()).at(current_image.getBlueBucket()).at(current_image.getGreenBucket()).push_back(index_files[i]);
     }
