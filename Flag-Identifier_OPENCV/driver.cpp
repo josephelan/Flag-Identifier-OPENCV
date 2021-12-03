@@ -27,10 +27,6 @@
 
 using namespace cv;
 
-void getFlags(std::vector<Mat>& images) {
-
-}
-
 /**
  * @brief main method drives the program through a series of steps in order
  *        to determine what flag is being input into the picture.
@@ -41,7 +37,7 @@ void getFlags(std::vector<Mat>& images) {
  */
 int main(int argc, char* argv[]) {
 
-  //File Names without extensions
+  // State file names without extensions
   std::string index_files[] = {
     "ak", "al", "ar", "az", "ca",
     "co", "ct", "de", "fl", "ga",
@@ -55,6 +51,7 @@ int main(int argc, char* argv[]) {
     "vt", "wa", "wi", "wv", "wy"
   };
 
+  // State names
   std::string index_files2[] = {
     "alaska", "alabama", "arkansas", "arizona", "california",
     "colorado", "connecticut", "delaware", "florida", "georgia",
@@ -70,34 +67,26 @@ int main(int argc, char* argv[]) {
 
   // Create vector of 50 state flag images to store files in
   std::vector<Mat> images;
-  // Read 50 flag images and store in "vector"
+
+  // Read 50 flag images and store in vector images
   for (int i = 0; i < 50; ++i) {
+    std::cout << "Adding flag: " << index_files2[i] << " to bank." << std::endl;
     std::string file_name = index_files[i] + ".jpg";
     Mat index_file = imread("flags/" + file_name);
     images.push_back(index_file);
   }
 
-  //TEST OUTPUT//TEST OUTPUT//TEST OUTPUT//TEST OUTPUT//TEST OUTPUT//TEST OUTPUT
-  namedWindow("my-output", WINDOW_NORMAL);
-  resizeWindow("my-output", images.at(46).cols, images.at(46).rows);
-  imshow("my-output", images.at(46));
-  waitKey(0);
-  //TEST OUTPUT//TEST OUTPUT//TEST OUTPUT//TEST OUTPUT//TEST OUTPUT//TEST OUTPUT
+  // Status
+  std::cout << "Creating map" << std::endl;
 
-  // Create "vector" to store final histogram values for each index image
-  // Pull images from images[] and calculate most common color histogram for each
-  // Store histogram in histogram "vector
-
-  // 3 Layered Map
+  // 3 Layered Map structure Stores flag names
   std::unordered_map<int, std::unordered_map<int, std::unordered_map<int, std::list<std::string>>>> flag_map;
+
+  std::vector<std::string> flag_debug;
 
   // flag_map maps red bucket in ints to a corresponding map of blue bucket
   // next layer maps blue bucket int to a corresponding map of green bucket
   // green bucket maps int bucket to a string
-
-
-
-
   for (int i = 0; i < images.size(); ++i) {
 
     // Get ColorBucket object, which holds the bucket for the most common color
@@ -110,57 +99,122 @@ int main(int argc, char* argv[]) {
       // Add the colorbucket and its name
 
       // Create final map with string of flag names
-      std::unordered_map<int, std::list<std::string>> final_map;
+      std::unordered_map<int, std::list<std::string>> final_map; // map
       std::list<std::string> flag_names; // Create flag name list
       flag_names.push_back(index_files[i]); // Push this state name onto flag_name list
-      final_map.emplace(current_image.getGreenBucket(), flag_names); // Push flag_name list and list of names onto final_map
+
+      // Create the green bucket int to flag name and put into map
+      std::pair<int, std::list<std::string>> green_to_flags(current_image.getGreenBucket(), flag_names);
+      final_map.insert(green_to_flags);
 
       // Create mid map with blue bucket and final_map
       std::unordered_map<int, std::unordered_map<int, std::list<std::string>>> mid_map;
-      mid_map.emplace(current_image.getBlueBucket(), final_map); // Put in blue bucket and final map
-      flag_map.emplace(current_image.getRedBucket(), mid_map); // Put in red bucket with blue bucket map
 
-    // Red bucket exists, check blue
+      // Create pair of blue bucket int to final map and put into map
+      std::pair<int, std::unordered_map<int, std::list<std::string>>> blue_to_green(current_image.getBlueBucket(), final_map);
+      mid_map.insert(blue_to_green);
+
+      // Insert map made into red
+      std::pair<int, std::unordered_map<int, std::unordered_map<int, std::list<std::string>>>> red_to_blue(current_image.getRedBucket(), mid_map);
+      flag_map.insert(red_to_blue);
+
+      std::cout << "Storing flag in new red bucket location for flag : " << index_files2[i] <<
+        " at location: " << current_image.getRedBucket() << ", " << current_image.getBlueBucket() <<
+        ", " << current_image.getGreenBucket() << std::endl;
+      
+      std::string location = std::to_string(current_image.getRedBucket()) + "," +
+        std::to_string(current_image.getBlueBucket()) + "," +
+        std::to_string(current_image.getGreenBucket()) + ": " +
+        index_files2[i];
+      flag_debug.push_back(location);
+
+      // Red bucket exists, check blue
     } else if (flag_map.at(current_image.getRedBucket()).find(current_image.getBlueBucket()) ==
                flag_map.at(current_image.getRedBucket()).end()) {
 
       // Add the colorbucket and its name
 
       // Create final map with string of flag names
-      std::unordered_map<int, std::list<std::string>> final_map;
+      std::unordered_map<int, std::list<std::string>> final_map; // map
       std::list<std::string> flag_names; // Create flag name list
       flag_names.push_back(index_files[i]); // Push this state name onto flag_name list
-      final_map.emplace(flag_names, flag_names); // Push flag_name list and list of names onto final_map
 
-      flag_map.at(current_image.getRedBucket()).emplace(current_image.getBlueBucket(), final_map);
+      // Create the green bucket int to flag name and put into map
+      std::pair<int, std::list<std::string>> green_to_flags(current_image.getGreenBucket(), flag_names);
+      final_map.insert(green_to_flags);
+
+      // Create mid map with blue bucket and final_map
+      std::unordered_map<int, std::unordered_map<int, std::list<std::string>>> mid_map;
+
+      std::pair<int, std::unordered_map<int, std::list<std::string>>> blue_to_green(current_image.getBlueBucket(), final_map);
+      mid_map.insert(blue_to_green);
+
+      flag_map.at(current_image.getRedBucket()).insert(blue_to_green);
+
+      std::cout << "Storing flag at existing red bucket but new blue bucket location for flag : " << index_files2[i] <<
+        " at location: " << current_image.getRedBucket() << ", " << current_image.getBlueBucket() <<
+        ", " << current_image.getGreenBucket() << std::endl;
+
+      std::string location = std::to_string(current_image.getRedBucket()) + "," +
+        std::to_string(current_image.getBlueBucket()) + "," +
+        std::to_string(current_image.getGreenBucket()) + ": " +
+        index_files2[i];
+      flag_debug.push_back(location);
 
       // Red and blue bucket exist, check green
     } else if (flag_map.at(current_image.getRedBucket()).at(current_image.getBlueBucket()).find(current_image.getGreenBucket()) ==
                flag_map.at(current_image.getRedBucket()).at(current_image.getBlueBucket()).end()) {
 
       // Add the colorbucket and its name
-      std::unordered_map<int, std::list<std::string>> final_map;
+
+      // Create final map with string of flag names
+      std::unordered_map<int, std::list<std::string>> final_map; // map
       std::list<std::string> flag_names; // Create flag name list
       flag_names.push_back(index_files[i]); // Push this state name onto flag_name list
-      flag_map.at(current_image.getRedBucket()).at(current_image.getBlueBucket()).emplace(current_image.getGreenBucket(), final_map);
 
+      // Create the green bucket int to flag name and put into map
+      std::pair<int, std::list<std::string>> green_to_flags(current_image.getGreenBucket(), flag_names);
+      final_map.insert(green_to_flags);
+
+      flag_map.at(current_image.getRedBucket()).at(current_image.getBlueBucket()).insert(green_to_flags);
+
+      std::cout << "Storing flag at existing red and blue bucket but new green bucket location for flag : " << index_files2[i] <<
+        " at location: " << current_image.getRedBucket() << ", " << current_image.getBlueBucket() <<
+        ", " << current_image.getGreenBucket() << std::endl;
+
+      std::string location = std::to_string(current_image.getRedBucket()) + "," +
+        std::to_string(current_image.getBlueBucket()) + "," +
+        std::to_string(current_image.getGreenBucket()) + ": " +
+        index_files2[i];
+      flag_debug.push_back(location);
 
       // The RBG bucket combination exists for a flag
     } else {
       flag_map.at(current_image.getRedBucket()).at(current_image.getBlueBucket()).at(current_image.getGreenBucket()).push_back(index_files[i]);
+      std::cout << "Storing flag in existing location for flag : " << index_files2[i] <<
+        " at location: " << current_image.getRedBucket() << ", " << current_image.getBlueBucket() <<
+        ", " << current_image.getGreenBucket() << std::endl;
+
+      std::string location = std::to_string(current_image.getRedBucket()) + "," +
+        std::to_string(current_image.getBlueBucket()) + "," +
+        std::to_string(current_image.getGreenBucket()) + ": " +
+        index_files2[i];
+      flag_debug.push_back(location);
     }
   }
 
+  std::cout << "----------------------------------------------------------------" << std::endl;
+  std::cout << "Flag positions: " << std::endl;
+  for (int i = 0; i < 50; ++i) {
+    std::cout << flag_debug.at(i) << std::endl;
+  }
 
-  // Mat foreground = imread("foreground.jpg");
-  // Mat background = imread("background.jpg");
-
-  // // Print out and write final image for opencv methods
-  // namedWindow("my-output", WINDOW_NORMAL);
-  // resizeWindow("my-output", colored.cols / 3, colored.rows / 3);
-  // imshow("my-output", colored);
-  // imwrite("myoutput.jpg", colored);
-  // waitKey(0);
+  std::cout << "Flags at list 7,7,7" << std::endl;
+  std::list<std::string>::iterator it = flag_map.at(7).at(7).at(7).begin();
+  while (it != flag_map.at(7).at(7).at(7).end()) {
+    std::cout << *(it) << std::endl;
+    ++it;
+  }
 
   return 0;
 }

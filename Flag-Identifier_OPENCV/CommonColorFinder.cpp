@@ -25,7 +25,7 @@ ColorBucket CommonColorFinder::getCommonColorBucket(const Mat& img) {
  * @return RGBHolder of most common RGB
  */
 RGBHolder CommonColorFinder::getCommonColor(const ColorBucket cb) {
-  int bucketSize = 64;
+  int bucketSize = 32;
   int common_red = cb.getRedBucket() * bucketSize + (bucketSize / 2);
   int common_green = cb.getGreenBucket() * bucketSize + (bucketSize / 2);
   int common_blue = cb.getBlueBucket() * bucketSize + (bucketSize / 2);
@@ -92,13 +92,13 @@ ColorBucket CommonColorFinder::findMostCommonBucket(const Mat& img) {
   ColorBucket max;
 
   // Loop through red buckets
-  for (int r = 0; r < 4; ++r) {
+  for (int r = 0; r < 8; ++r) {
 
     // Loop through green buckets
-    for (int b = 0; b < 4; ++b) {
+    for (int b = 0; b < 8; ++b) {
 
       // Loop through blue buckets
-      for (int g = 0; g < 4; ++g) {
+      for (int g = 0; g < 8; ++g) {
 
         if (img.at<int>(r, g, b) > max.getCount()) {
           max.setRedBucket(r);
