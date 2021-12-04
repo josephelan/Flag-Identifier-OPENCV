@@ -1,3 +1,16 @@
+/*********************************************************************
+ * @file       CommonColorFinder.h
+ * @brief       CommonColorFinder uses opencv methods to develop histogram
+ *              information about a given Mat image.
+ *
+ * @author Joseph Lan
+ *
+ * @date 2021 December 4
+ *
+ * FLAG IDENTIIFIER
+ * CSS 487 Final Project
+ * Prof. Clark Olson
+ *********************************************************************/
 #pragma once
 
 #include <opencv2/core.hpp>
@@ -20,7 +33,9 @@ struct RGBHolder {
 };
 
 /**
- * @brief 
+ * @class CommonColorFinder is a helper class that uses openCV methods to return
+ *          histogram information about an image with ColorBucket and openCV
+ *          objects.
  */
 class CommonColorFinder {
 

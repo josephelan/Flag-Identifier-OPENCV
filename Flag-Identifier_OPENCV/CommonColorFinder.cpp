@@ -1,3 +1,16 @@
+/*********************************************************************
+ * @file       CommonColorFinder.cpp
+ * @brief       CommonColorFinder uses opencv methods to develop histogram
+ *              information about a given Mat image.
+ *
+ * @author Joseph Lan
+ *
+ * @date 2021 December 4
+ *
+ * FLAG IDENTIIFIER
+ * CSS 487 Final Project
+ * Prof. Clark Olson
+ *********************************************************************/
 #include "CommonColorFinder.h"
 
 /**
@@ -9,13 +22,19 @@ CommonColorFinder::CommonColorFinder() {
 
 /**
  * @brief Returns a ColorBucket of RBG space with 4 dimensions from a histrogram
- *        of the input image
+ *        of the input image.
  * 
  * @param img Image to create histrogram and generate color bucket from
  * @return ColorBucket representing red,blue,green bucket with most counts
  */
 ColorBucket CommonColorFinder::getCommonColorBucket(const Mat& img) {
-  return findMostCommonBucket(populateHistogram(img));
+  ColorBucket result = findMostCommonBucket(populateHistogram(img));
+
+  // Calculates ratio of most common color to total pixel count in image
+  int total_pixels = img.rows * img.cols;
+  float ratio = (float)result.getCount() / float(total_pixels);
+  result.setCommonColorRatio(ratio);
+  return result;
 }
 
 /**

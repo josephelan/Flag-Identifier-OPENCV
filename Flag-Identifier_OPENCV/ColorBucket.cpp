@@ -1,9 +1,22 @@
+/*********************************************************************
+ * @file       ColorBucket.cpp
+ * @brief      ColorBucket holds histogram bucket information for a given image
+ *              for its RBG values.
+ *
+ * @author Joseph Lan
+ *
+ * @date 2021 December 4
+ *
+ * FLAG IDENTIIFIER
+ * CSS 487 Final Project
+ * Prof. Clark Olson
+ *********************************************************************/
 #include "ColorBucket.h"
 
 /**
  * @brief Constructor initializes all values to 0 and count to -
  */
-ColorBucket::ColorBucket() : red_bucket_(0), green_bucket_(0), blue_bucket_(0), count_(-1) {}
+ColorBucket::ColorBucket() : red_bucket_(0), green_bucket_(0), blue_bucket_(0), count_(-1), mostCommonColorRatio_(-1) {}
 
 /**
  * @brief Get the red dimensional bucket
@@ -42,6 +55,14 @@ int ColorBucket::getCount() const {
 }
 
 /**
+ * @brief getter for most common color ratio
+ * @return mostCommonColorRatio
+ */
+float ColorBucket::getCommonColorRatio() const {
+  return mostCommonColorRatio_;
+}
+
+/**
  * @brief setter for red_bucket_
  * 
  * @param bucket to set
@@ -75,4 +96,12 @@ void ColorBucket::setBlueBucket(int bucket) {
  */
 void ColorBucket::setCount(int count) {
   this->count_ = count;
+}
+
+/**
+ * @brief Setter for most common color ratio
+ * @param ratio to set data member to
+ */
+void ColorBucket::setCommonColorRatio(float ratio) {
+  this->mostCommonColorRatio_ = ratio;
 }
