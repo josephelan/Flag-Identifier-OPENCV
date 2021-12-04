@@ -27,6 +27,55 @@
 
 using namespace cv;
 
+std::list<std::string> findClosestFlag(const std::vector<Mat>& histograms, Mat& test_file, const std::unordered_map<int, std::unordered_map<int, std::unordered_map<int, std::list<std::string>>>>& flag_map) {
+    ColorBucket image = CommonColorFinder::getCommonColorBucket(test_file);
+    std::list<std::string> result;
+    int red = image.getRedBucket();
+    int blue = image.getBlueBucket();
+    int green = image.getGreenBucket();
+    std::cout << "r: " << red << std::endl;
+    std::cout << "b: " << blue << std::endl;
+    std::cout << "g: " << green << std::endl;
+    const int max_bucket = 7;
+    try {
+        //Look for flags in the exact same bucket as the imput image
+        result = flag_map.at(red).at(blue).at(green);
+    }
+    catch (std::exception e1) {
+        //Look for flags in adjacent buckets as the imput image
+        for (int r = red - 1; r <= red + 1; ++r) {
+            if (r < 0 || r > max_bucket) {
+                continue;
+            }
+            for (int b = blue - 1; b <= blue + 1; ++b) {
+                if (b < 0 || b > max_bucket) {
+                    continue;
+                }
+                for (int g = green - 1; g <= green + 1; ++g) {
+                    if (g < 0 || g > max_bucket) {
+                        continue;
+                    }
+                    try {
+                        std::list<std::string> flag_list = flag_map.at(red).at(blue).at(green);
+                        result.merge(flag_list);
+                    }
+                    catch (std::exception e2) {
+                        continue;
+                    }
+                }
+            }
+        }
+    }
+    float count = image.getCount();
+    float image_ratio = count / ((float)test_file.rows * (float)test_file.cols);
+    //For each string in result list
+        //Find corresponding image ratio
+        //Compare ratio
+        //If ratios are not within acceptable range
+            //Remove from results list
+    return result;
+}
+
 /**
  * @brief main method drives the program through a series of steps in order
  *        to determine what flag is being input into the picture.
@@ -63,6 +112,20 @@ int main(int argc, char* argv[]) {
     "oklahoma", "oregon", "pennsylvania", "rhode_island", "south_carolina",
     "south_dakota", "tennessee", "texas", "utah", "virginia",
     "vermont", "washington", "wisconsin", "west_virginia", "wyoming"
+  };
+
+  // State names formatted
+  std::string index_files3[] = {
+    "Alaska", "Alabama", "Arkansas", "Arizona", "California",
+    "Colorado", "Connecticut", "Delaware", "Florida", "Georgia",
+    "Hawaii", "Iowa", "Idaho", "Illinois", "Indiana",
+    "Kansas", "Kentucky", "Louisiana", "Massachusetts", "Maryland",
+    "Maine", "Michigan", "Minnesota", "Missouri", "Mississippi",
+    "Montana", "North Carolina", "North_Dakota", "Nebraska", "New Hampshire",
+    "New Jersey", "New Mexico", "Nevada", "New York", "Ohio",
+    "Oklahoma", "Oregon", "Pennsylvania", "Rhode_island", "South Carolina",
+    "South Dakota", "Tennessee", "Texas", "Utah", "Virginia",
+    "Vermont", "Washington", "Wisconsin", "West_virginia", "Wyoming"
   };
 
   // Create vector of 50 state flag images to store files in
@@ -222,5 +285,17 @@ int main(int argc, char* argv[]) {
     ++it;
   }
 
-  return 0;
+  //READING IN FLAG
+  Mat test_file = imread("flags/test_flag2.jpg");
+  std::list<std::string> possible_flags = findClosestFlag(histograms, test_file, flag_map);
+
+  std::cout << "POSSIBLE FLAGS" << std::endl;
+  std::list<std::string>::iterator it2 = possible_flags.begin();
+  while (it2 != possible_flags.end()) {
+      std::cout << *(it2) << std::endl;
+      ++it2;
+  }
+
+  
 }
+
