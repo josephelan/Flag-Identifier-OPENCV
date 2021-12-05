@@ -14,11 +14,11 @@
 #pragma once
 
 
-/**
- * @class ColorBucket holds histogram bucket information for a given image for 
- *        RBG values. It also holds the count of the most common bucket and its
- *        ratio to the total pixels in the image
- */
+ /**
+  * @class ColorBucket holds histogram bucket information for a given image for
+  *        RBG values. It also holds the count of the most common bucket and its
+  *        ratio to the total pixels in the image
+  */
 class ColorBucket {
   public:
 

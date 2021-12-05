@@ -27,67 +27,19 @@
 
 using namespace cv;
 
-std::list<std::string> findClosestFlag(const std::vector<Mat>& histograms, Mat& test_file, const std::unordered_map<int, std::unordered_map<int, std::unordered_map<int, std::list<std::string>>>>& flag_map) {
-    ColorBucket image = CommonColorFinder::getCommonColorBucket(test_file);
-    std::list<std::string> result;
-    int red = image.getRedBucket();
-    int blue = image.getBlueBucket();
-    int green = image.getGreenBucket();
-    std::cout << "r: " << red << std::endl;
-    std::cout << "b: " << blue << std::endl;
-    std::cout << "g: " << green << std::endl;
-    const int max_bucket = 7;
-    try {
-        //Look for flags in the exact same bucket as the imput image
-        result = flag_map.at(red).at(blue).at(green);
-    }
-    catch (std::exception e1) {
-        //Look for flags in adjacent buckets as the imput image
-        for (int r = red - 1; r <= red + 1; ++r) {
-            if (r < 0 || r > max_bucket) {
-                continue;
-            }
-            for (int b = blue - 1; b <= blue + 1; ++b) {
-                if (b < 0 || b > max_bucket) {
-                    continue;
-                }
-                for (int g = green - 1; g <= green + 1; ++g) {
-                    if (g < 0 || g > max_bucket) {
-                        continue;
-                    }
-                    try {
-                        std::list<std::string> flag_list = flag_map.at(red).at(blue).at(green);
-                        result.merge(flag_list);
-                    }
-                    catch (std::exception e2) {
-                        continue;
-                    }
-                }
-            }
-        }
-    }
-    float count = image.getCount();
-    float image_ratio = count / ((float)test_file.rows * (float)test_file.cols);
-    //For each string in result list
-        //Find corresponding image ratio
-        //Compare ratio
-        //If ratios are not within acceptable range
-            //Remove from results list
-    return result;
-}
-
 /**
  * @brief   findClosestFlag method will analyze an input image and determine
  *            similar looking flags based on the most common color present.
- * 
+ *
  * @param   input is a Mat representing the input image.
  * @param   flag_map is the multi-dimensional map containing a list of strings
  *            with state names in their appropriate bucket based on the most
  *            common color present.
- * 
+ *
  * @return  a list of similar looking flags based on the input image.
  */
-std::list<std::string> findClosestFlag(const std::unordered_map<int, std::unordered_map<int, std::unordered_map<int, std::list<std::string>>>>& flag_map, const ColorBucket& image_bucket) {
+std::list<std::string> findClosestFlag(const std::unordered_map<int, std::unordered_map<int, std::unordered_map<int, std::list<std::string>>>>& flag_map,
+                                       const ColorBucket& image_bucket) {
 
   // Return the key,value pair found at the bottom of hashmap
   std::list<std::string> result;
@@ -150,15 +102,15 @@ std::list<std::string> findClosestFlag(const std::unordered_map<int, std::unorde
 /**
  * @brief filterRatios gets closer to the target flag by filtering out images
  *        based on histogram ratios in aand color bucket information
- * 
+ *
  * @pre
  * @post
- * 
+ *
  * @param list
  * @param histogram
  */
 void filterRatios(std::list<std::string>& list,
-                  const std::unordered_map<std::string, Mat>& histogram,
+                  const std::unordered_map<std::string, ColorBucket>& color_buckets,
                   const ColorBucket& image_bucket) {
   if (list.size() <= 1) {
     return;
@@ -166,34 +118,171 @@ void filterRatios(std::list<std::string>& list,
 
   // Ratio of most common color bucket to all pixels in the image
   float image_ratio = image_bucket.getCommonColorRatio();
+  const float acceptable_error = image_ratio * 0.05f;
+  float min_ratio = image_ratio - acceptable_error;
+  float max_ratio = image_ratio + acceptable_error;
 
-  for (std::string x : list) {
-    //Find corresponding image ratio
-    float index_ratio;
-      //Compare ratio
-      //If ratios are not within acceptable range
-          //Remove from results list
+  std::list<std::string>::iterator it = list.begin();
+  while (it != list.end()) {
+    std::string s = *it;
+
+    // Get ratio of most common color bucket for each flag in list
+    float index_ratio = color_buckets.at(s).getCommonColorRatio();
+
+    // Check if ratio is within acceptable range
+    if (index_ratio < min_ratio || index_ratio > max_ratio) {
+
+      // Delete if not in acceptable range
+      it = list.erase(it);
+    } else {
+      ++it;
+    }
   }
   return;
+}
+
+/**
+ * @brief Returns number of edge pixels in an image through canny edge
+ *        detection
+ *
+ * @pre img not null
+ * @post no change to image
+ *
+ * @param img image to count
+ * @return count of edge pixels
+ */
+int countEdgePixels(const Mat& img) {
+  int count = 0;
+  for (int row = 0; row < img.rows; ++row) {
+    for (int col = 0; col < img.cols; ++col) {
+
+      // If this is an edge, increment count
+      if (img.at<uchar>(row, col) != 0) {
+        ++count;
+      }
+    }
+  }
+  return count;
+}
+
+/**
+ * @brief Filters our flags from list using canny edge count
+ *
+ * @pre list not empty, images is filled with flag templates, test_image not null
+ * @post list changed to remove flags not within range of canny edge counts
+ *
+ * @param list possible flags that match
+ * @param images map or images kept as image database
+ * @param test_image image being tested
+ */
+void filterCannyEdgeCount(std::list<std::string>& list,
+                          const std::unordered_map<std::string, Mat>& images,
+                          const Mat& test_image) {
+
+  // If only one item in list, end
+  if (list.size() <= 1) {
+    return;
+  }
+
+  // Define variables for edge counting
+  const int gaussian_kernel = 7;
+  const double gaussian_deviation = 2.0;
+  const int thresh1 = 20;
+  const int thresh2 = 60;
+
+  // Count test image edge counts
+  Mat test_clone = test_image.clone();
+  cvtColor(test_clone, test_clone, COLOR_BGR2GRAY);
+  GaussianBlur(test_clone, test_clone, Size(gaussian_kernel, gaussian_kernel), gaussian_deviation, gaussian_deviation);
+  Canny(test_clone, test_clone, thresh1, thresh2);
+  int test_edge_counts = countEdgePixels(test_clone);
+
+  // Convert to ratio and set boundaries
+  int num_pix = test_image.rows * test_image.cols;
+  float ratio = (float)test_edge_counts / (float)num_pix;
+  const float acceptable_error = ratio * 0.05f;
+  float min_ratio = ratio - acceptable_error;
+  float max_ratio = ratio + acceptable_error;
+
+  //std::cout << "Test image ratio for edge: " << ratio << std::endl;
+  //std::cout << "min_ratio for edge: " << min_ratio << std::endl;
+  //std::cout << "max_ratio for edge: " << max_ratio << std::endl;
+
+  // For each flag in list
+  std::vector<float> possible_ratios;
+  for (std::string x : list) {
+
+    // Convert image into canny edge image
+    Mat edged_image = images.at(x).clone();
+    cvtColor(edged_image, edged_image, COLOR_BGR2GRAY);
+    GaussianBlur(edged_image, edged_image, Size(gaussian_kernel, gaussian_kernel), gaussian_deviation, gaussian_deviation);
+    Canny(edged_image, edged_image, thresh1, thresh2);
+
+    // Count edges
+    int edged_count = countEdgePixels(edged_image);
+    int edged_pix = edged_image.rows * edged_image.cols;
+    float edged_ratio = (float)edged_count / (float)edged_pix;
+    possible_ratios.push_back(edged_ratio);
+  }
+
+  // Compare count ratio in images to count ratio for the test file
+  int num_possible = (int)list.size();
+  for (int i = 0; i < num_possible; ++i) {
+
+    std::string flag = list.front();
+    //std::cout << "Testing edge ratio: " << flag << std::endl;
+    //std::cout << "Flag has count: " << possible_ratios.at(i) << std::endl;
+
+    // If head of list ratio is within bounds, add it back in
+    if (possible_ratios.at(i) >= min_ratio &&
+        possible_ratios.at(i) <= max_ratio) {
+      //std::cout << "Keeping this flag" << std::endl;
+      list.push_back(flag);
+    } else {
+      //std::cout << "Removing this flag" << std::endl;
+    }
+
+    // Destroy first element
+    list.pop_front();
+  }
 }
 
 /**
  * @brief Test function to test for any certain flag during code test
  */
 void test(const std::unordered_map<int, std::unordered_map<int, std::unordered_map<int, std::list<std::string>>>>& flag_map,
-          const std::unordered_map<std::string, Mat>& histograms) {
+          const std::unordered_map<std::string, ColorBucket>& color_buckets,
+          const std::unordered_map<std::string, Mat>& images,
+          const std::string filename) {
 
-  Mat test_file = imread("flags/test_flag.jpg");
+  std::cout << "Testing: " << filename << " in program." << std::endl;
+
+  Mat test_file = imread(filename);
 
   // ColorBucket for the input image (image we're looking for)
   ColorBucket image_bucket = CommonColorFinder::getCommonColorBucket(test_file);
 
   // Step 1: findClosestFlag to narrow down colorBuckets
+  //std::cout << "Finding closest flags by bucket" << std::endl;
   std::list<std::string> possible_flags = findClosestFlag(flag_map, image_bucket);
 
   // Step 2: filterRatios to get closer to flag
-  // filterRatios(possible_flags, histograms, image_bucket);
+  //std::cout << "Filter with ratios" << std::endl;
+  filterRatios(possible_flags, color_buckets, image_bucket);
 
+  // Resize for img dims
+  float change = (float)test_file.rows / 240;
+  float width = (float)test_file.cols / change;
+  Size resizing((int)width, 240);
+  resize(test_file, test_file, resizing, INTER_LINEAR);
+
+  // Step 3: filterCannyEdge count to get closer to flag
+  //std::cout << "Filter with canny edge detection" << std::endl;
+  filterCannyEdgeCount(possible_flags, images, test_file);
+
+  std::cout << std::endl; // Line clear
+
+  // Print out current possible flags
   std::cout << "POSSIBLE FLAGS" << std::endl;
   std::list<std::string>::iterator it2 = possible_flags.begin();
   while (it2 != possible_flags.end()) {
@@ -205,15 +294,15 @@ void test(const std::unordered_map<int, std::unordered_map<int, std::unordered_m
 /**
  * @brief main method drives the program through a series of steps in order
  *        to determine what flag is being input into the picture.
- * 
+ *
  *        TENT-KEEP: The program takes in a folder of flags to create a database
  *          of flag data using color histograms.
  *        1. The program reads in a filename from the user.
  *        2. The program accesses the flag picture in the program directory.
- *        3. The program 
+ *        3. The program
  *
  * @param argc n/a
- * @param argv 
+ * @param argv
  * @return
  */
 int main(int argc, char* argv[]) {
@@ -253,9 +342,9 @@ int main(int argc, char* argv[]) {
     "Hawaii", "Iowa", "Idaho", "Illinois", "Indiana",
     "Kansas", "Kentucky", "Louisiana", "Massachusetts", "Maryland",
     "Maine", "Michigan", "Minnesota", "Missouri", "Mississippi",
-    "Montana", "North Carolina", "North_Dakota", "Nebraska", "New Hampshire",
+    "Montana", "North Carolina", "North Dakota", "Nebraska", "New Hampshire",
     "New Jersey", "New Mexico", "Nevada", "New York", "Ohio",
-    "Oklahoma", "Oregon", "Pennsylvania", "Rhode_island", "South Carolina",
+    "Oklahoma", "Oregon", "Pennsylvania", "Rhode Island", "South Carolina",
     "South Dakota", "Tennessee", "Texas", "Utah", "Virginia",
     "Vermont", "Washington", "Wisconsin", "West_virginia", "Wyoming"
   };
@@ -266,16 +355,11 @@ int main(int argc, char* argv[]) {
 
   // Read 50 flag images and store in vector images
   for (int i = 0; i < 50; ++i) {
-    std::cout << "Adding flag: " << index_files2[i] << " to bank." << std::endl;
     std::string file_name = index_files[i];
     Mat index_file = imread("flags/" + file_name + ".jpg");
     std::pair<std::string, Mat> index_entry(file_name, index_file);
     images.insert(index_entry);
   }
-
-  // Status
-  std::cout << "-------------------------------------------------" << std::endl;
-  std::cout << "Creating map" << std::endl;
 
   // 3 Layered Map structure Stores flag names
   std::unordered_map<int, std::unordered_map<int, std::unordered_map<int, std::list<std::string>>>> flag_map;
@@ -287,7 +371,8 @@ int main(int argc, char* argv[]) {
     std::pair<std::string, Mat> histogram_entry(s, CommonColorFinder::populateHistogram(images.at(s)));
     histograms.insert(histogram_entry);
   }
-  
+
+  std::unordered_map<std::string, ColorBucket> index_color_buckets;
 
   // flag_map maps red bucket in ints to a corresponding map of blue bucket
   // next layer maps blue bucket int to a corresponding map of green bucket
@@ -297,6 +382,10 @@ int main(int argc, char* argv[]) {
     // Get ColorBucket object, which holds the bucket for the most common color
     // For image at position (i)
     ColorBucket current_image = CommonColorFinder::getCommonColorBucket(images.at(index_files[i]));
+
+    //Add the colorbucket to the map of colorbuckets for index images
+    std::pair<std::string, ColorBucket> index_colorbucket(index_files[i], current_image);
+    index_color_buckets.insert(index_colorbucket);
 
     // If hashmap doesn't have an image with this red bucket, add it
     if (flag_map.find(current_image.getRedBucket()) == flag_map.end()) {
@@ -323,10 +412,6 @@ int main(int argc, char* argv[]) {
       std::pair<int, std::unordered_map<int, std::unordered_map<int, std::list<std::string>>>> red_to_blue(current_image.getRedBucket(), mid_map);
       flag_map.insert(red_to_blue);
 
-      std::cout << "Storing flag in new red bucket location for flag : " << index_files2[i] <<
-        " at location: " << current_image.getRedBucket() << ", " << current_image.getBlueBucket() <<
-        ", " << current_image.getGreenBucket() << std::endl;
-      
       std::string location = std::to_string(current_image.getRedBucket()) + "," +
         std::to_string(current_image.getBlueBucket()) + "," +
         std::to_string(current_image.getGreenBucket()) + ": " +
@@ -356,10 +441,6 @@ int main(int argc, char* argv[]) {
 
       flag_map.at(current_image.getRedBucket()).insert(blue_to_green);
 
-      std::cout << "Storing flag at existing red bucket but new blue bucket location for flag : " << index_files2[i] <<
-        " at location: " << current_image.getRedBucket() << ", " << current_image.getBlueBucket() <<
-        ", " << current_image.getGreenBucket() << std::endl;
-
       std::string location = std::to_string(current_image.getRedBucket()) + "," +
         std::to_string(current_image.getBlueBucket()) + "," +
         std::to_string(current_image.getGreenBucket()) + ": " +
@@ -383,10 +464,6 @@ int main(int argc, char* argv[]) {
 
       flag_map.at(current_image.getRedBucket()).at(current_image.getBlueBucket()).insert(green_to_flags);
 
-      std::cout << "Storing flag at existing red and blue bucket but new green bucket location for flag : " << index_files2[i] <<
-        " at location: " << current_image.getRedBucket() << ", " << current_image.getBlueBucket() <<
-        ", " << current_image.getGreenBucket() << std::endl;
-
       std::string location = std::to_string(current_image.getRedBucket()) + "," +
         std::to_string(current_image.getBlueBucket()) + "," +
         std::to_string(current_image.getGreenBucket()) + ": " +
@@ -396,9 +473,6 @@ int main(int argc, char* argv[]) {
       // The RBG bucket combination exists for a flag
     } else {
       flag_map.at(current_image.getRedBucket()).at(current_image.getBlueBucket()).at(current_image.getGreenBucket()).push_back(index_files[i]);
-      std::cout << "Storing flag in existing location for flag : " << index_files2[i] <<
-        " at location: " << current_image.getRedBucket() << ", " << current_image.getBlueBucket() <<
-        ", " << current_image.getGreenBucket() << std::endl;
 
       std::string location = std::to_string(current_image.getRedBucket()) + "," +
         std::to_string(current_image.getBlueBucket()) + "," +
@@ -408,21 +482,22 @@ int main(int argc, char* argv[]) {
     }
   }
 
-  std::cout << "----------------------------------------------------------------" << std::endl;
-  std::cout << "Flag positions: " << std::endl;
+  //std::cout << "----------------------------------------------------------------" << std::endl;
+  //std::cout << "Flag positions: " << std::endl;
 
-  for (int i = 0; i < 50; ++i) {
-    std::cout << flag_debug.at(i) << std::endl;
+  //for (int i = 0; i < 50; ++i) {
+  //  std::cout << flag_debug.at(i) << std::endl;
+  //}
+
+  std::string filename = "";
+  // 
+  for (std::string x : index_files) {
+    filename = "flags/" + x + ".jpg";
+    test(flag_map, index_color_buckets, images, filename);
+    std::cout << std::endl;
   }
 
-  std::list<std::string>::iterator it = flag_map.at(7).at(7).at(7).begin();
-  while (it != flag_map.at(7).at(7).at(7).end()) {
-    std::cout << *(it) << std::endl;
-    ++it;
-  }
-
-  // Testing 
-  test(flag_map, histograms);
+  //test(flag_map, index_color_buckets, images,filename);
 
   return 0;
 }

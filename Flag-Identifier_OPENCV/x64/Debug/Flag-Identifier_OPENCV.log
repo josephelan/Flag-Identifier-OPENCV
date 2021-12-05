@@ -1,6 +1,5 @@
 ﻿  ColorBucket.cpp
   driver.cpp
-C:\Users\jecon\source\repos\josephelan\Flag-Identifier-OPENCV\Flag-Identifier_OPENCV\driver.cpp(123,11): warning C4101: 'index_ratio': unreferenced local variable
   CommonColorFinder.cpp
   Generating Code...
   Flag-Identifier_OPENCV.vcxproj -> C:\Users\jecon\source\repos\josephelan\Flag-Identifier-OPENCV\x64\Debug\Flag-Identifier_OPENCV.exe
