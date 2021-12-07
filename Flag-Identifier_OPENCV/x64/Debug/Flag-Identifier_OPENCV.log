@@ -1,2 +1,5 @@
-﻿  driver.cpp
+﻿  ColorBucket.cpp
+  driver.cpp
+  CommonColorFinder.cpp
+  Generating Code...
   Flag-Identifier_OPENCV.vcxproj -> C:\Users\jecon\source\repos\josephelan\Flag-Identifier-OPENCV\x64\Debug\Flag-Identifier_OPENCV.exe
