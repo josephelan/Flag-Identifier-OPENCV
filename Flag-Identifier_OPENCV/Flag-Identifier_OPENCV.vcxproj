@@ -151,6 +151,12 @@
     <ClInclude Include="ColorBucket.h" />
     <ClInclude Include="CommonColorFinder.h" />
   </ItemGroup>
+  <ItemGroup>
+    <Text Include="shit.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="run.bat" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

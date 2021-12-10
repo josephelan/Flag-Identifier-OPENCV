@@ -21,7 +21,7 @@ ColorBucket::ColorBucket() : red_bucket_(0), green_bucket_(0), blue_bucket_(0), 
 /**
  * @brief Get the red dimensional bucket
  * 
- * @return red dimensional bucket 0-4
+ * @return red dimensional bucket 0-7
  */
 int ColorBucket::getRedBucket() const {
   return this->red_bucket_;
@@ -30,7 +30,7 @@ int ColorBucket::getRedBucket() const {
 /**
  * @brief Get the green dimensional bucket
  *
- * @return green dimensional bucket 0-4
+ * @return green dimensional bucket 0-7
  */
 int ColorBucket::getGreenBucket() const {
   return this->green_bucket_;
@@ -39,7 +39,7 @@ int ColorBucket::getGreenBucket() const {
 /**
  * @brief Get the blue dimensional bucket
  *
- * @return blue dimensional bucket 0-4
+ * @return blue dimensional bucket 0-7
  */
 int ColorBucket::getBlueBucket() const {
   return this->blue_bucket_;

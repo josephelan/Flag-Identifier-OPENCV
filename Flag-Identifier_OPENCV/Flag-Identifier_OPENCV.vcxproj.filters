@@ -33,4 +33,14 @@
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
+  <ItemGroup>
+    <Text Include="shit.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="run.bat">
+      <Filter>Resource Files</Filter>
+    </None>
+  </ItemGroup>
 </Project>
