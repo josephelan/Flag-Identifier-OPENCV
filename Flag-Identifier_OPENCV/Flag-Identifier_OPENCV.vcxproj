@@ -155,6 +155,7 @@
     <Text Include="shit.txt" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="allrun.bat" />
     <None Include="run.bat" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

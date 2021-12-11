@@ -124,7 +124,7 @@ void filterRatios(std::list<std::string>& list,
   const float acceptable_error = 0.006f;
   float min_ratio = image_ratio - acceptable_error;
   float max_ratio = image_ratio + acceptable_error;
-  std::cout << "test image_ratio" << image_ratio << std::endl;
+  std::cout << "Test image_ratio: " << image_ratio << std::endl;
   std::cout << "min: " << min_ratio << std::endl;
   std::cout << "max: " << max_ratio << std::endl;
 
@@ -210,7 +210,7 @@ void filterCannyEdgeCount(std::list<std::string>& list,
   float min_ratio = ratio - acceptable_error;
   float max_ratio = ratio + acceptable_error;
 
-  std::cout << "test ratio" << ratio << std::endl;
+  std::cout << "Test ratio: " << ratio << std::endl;
   std::cout << "min: " << min_ratio << std::endl;
   std::cout << "max: " << max_ratio << std::endl;
 
@@ -496,21 +496,27 @@ std::list<std::string> findFlag(const std::unordered_map<int, std::unordered_map
 
   // Filtered search through upper left quadrant
   possible_flags = findClosestFlag(ul_flag_map, ul_bucket);
-  std::cout << "Size mcc: " << possible_flags.size() << std::endl;
-  // Early exit
+  std::cout << "Size of possible flags after MCC: " << possible_flags.size() << std::endl;
+
+  // Early exit if possiblity found
   if (possible_flags.size() == 1) {
     std::cout << "Result found after " << operation << "." << std::endl;
     return possible_flags;
   }
+  
+  //Filter out the flags based on the correct color ratio
   filterRatios(possible_flags, ul_index_color_buckets, ul_bucket);
-  std::cout << "Size fr: " << possible_flags.size() << std::endl;
+  std::cout << "Size of possible flags after MCC ratio: " << possible_flags.size() << std::endl;
+
   // Early exit
   if (possible_flags.size() == 1) {
     std::cout << "Result found after " << operation << "." << std::endl;
     return possible_flags;
   }
+
+  //Filter out possible flags based on the canny edge algorithm
   filterCannyEdgeCount(possible_flags, ul_images, ul_quadrant);
-  std::cout << "Size ce: " << possible_flags.size() << std::endl;
+  std::cout << "Size of possible flags after Edge Ratio: " << possible_flags.size() << std::endl;
   std::cout << "Result found after " << operation << "." << std::endl;
 
   return possible_flags;
@@ -582,6 +588,7 @@ int main(int argc, char* argv[]) {
   // green bucket maps int bucket to a string
   buildFlagMap(index_filenames, flag_map, images, index_color_buckets);
 
+  //Check to see if we have valid input, else throw an error
   unsigned int num_args = -1;
   try {
     num_args = atoi(argv[1]);
@@ -589,7 +596,7 @@ int main(int argc, char* argv[]) {
     std::cout << "Error in arguments: \"" << argv[1] << "\" cannot be converted into an integer." << std::endl;
     return 0;
   }
-  
+  //Create a place to store our file names
   std::vector<std::string> test_file_names;
 
   // Convert character array input arguments to double

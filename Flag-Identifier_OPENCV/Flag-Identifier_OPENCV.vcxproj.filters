@@ -42,5 +42,8 @@
     <None Include="run.bat">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="allrun.bat">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

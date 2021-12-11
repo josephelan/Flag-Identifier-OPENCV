@@ -40,7 +40,7 @@ struct RGBHolder {
 class CommonColorFinder {
 
   public:
-  
+
   static RGBHolder getCommonColor(const ColorBucket);
 
   /**
