@@ -68,9 +68,13 @@ Note: all test images must be in “.jpg” format. (e.g. test1.jpg, test2.jpg, 
 If you want to run tests separately you can edit the bat file by changing the arguments to suit your desired test.
 
 Change argv[1] to the number of test files you want to test.
+
 e.g. Testing 50 flags means this would be the number 50
+
 Change argv[2 - n] to the file names for your test images. These names must not include spaces and must be jpg. Do not include extensions.
+
 e.g. test1, test2, test3, test4, vt, ak, wa, ca
+
 Run the bat file
 
 # Addition BAT files
