@@ -54,13 +54,13 @@ The provided .bat file contains the script to run the code. The default script r
 
 The arguments in order to the program into argv[] are:
 
-[0] : Flag-Identifier_OPENCV.exe		// Name of the program
-[1] : 5						// # of images to run this execution
-[2] : test1					// Name of first test image
-[3] : test2					// Name of second test image
-[4] : test3					// Name of third test image
-[5] : test4					// Name of fourth test image
-[6] : test5					// Name of fifth test image
+- [0] : Flag-Identifier_OPENCV.exe		// Name of the program
+- [1] : 5						// # of images to run this execution
+- [2] : test1					// Name of first test image
+- [3] : test2					// Name of second test image
+- [4] : test3					// Name of third test image
+- [5] : test4					// Name of fourth test image
+- [6] : test5					// Name of fifth test image
 
 Note: all test images must be in “.jpg” format. (e.g. test1.jpg, test2.jpg, anytest.jpg)
 
