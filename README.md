@@ -1,9 +1,7 @@
 # Project Objectives
-The objective of the project is to create a flag identifier application. Unlike traditional reverse image search tools, our program leans towards fast image processing and accurate returns.
-Our program should be able to take in any flag image as an input, and with a combination of filtering methods, determine the most likely candidate result.
+The objective of the project is to create a flag identifier application. Unlike traditional reverse image search tools, our program leans towards fast image processing and accurate returns. Our program should be able to take in any flag image as an input, and with a combination of filtering methods, determine the most likely candidate result.
 
-Some methods that we considered were color matching with similar colors and how to implement that. Pass that we could use color percentages to determine how dominant certain colors are.
-Pattern matching and template matching was an initial tool to determine what types of shapes are in a flag. However we avoided these ideas to avoiding n^2 * m^2 time for every combination of images. We instead chose to work with modular filters that could work by slowly narrowing down possible flags in stages.
+Some methods that we considered were color matching with similar colors and how to implement that. Pass that we could use color percentages to determine how dominant certain colors are. Pattern matching and template matching was an initial tool to determine what types of shapes are in a flag. However we avoided these ideas to avoiding n^2 * m^2 time for every combination of images. We instead chose to work with modular filters that could work by slowly narrowing down possible flags in stages.
  
 # Key Project Features
 Identification of U.S.state flags when given as an input image.
@@ -14,7 +12,7 @@ Returns a resultant image and name of the state flag found.
 Creates a database of flag image metadata using histogram information.
 
 # What did we Accomplish
-Accomplishment Overview
+## Accomplishment Overview
 The program can take in a rectangular U.S. state flag and recognize it against a bank of images to search against.
 The program uses color information, ratio information, edge information, and image quadrant calculations to determine the flag.
 The program would take x number of input test flags, provided that the number of flags is given, and the names of the test images that correlate with the test images in the directory.
